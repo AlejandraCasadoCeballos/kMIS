@@ -27,11 +27,12 @@ public class Main {
 
     final public static boolean DEBUG = true;
     static IConstructive constructive = new RandomConstructive();
+    final static int seed=13;
 
     public static void main(String[] args){
         readData();
         for (Instance instance:instances) {
-            RandomManager.setSeed(13);
+            RandomManager.setSeed(seed);
             Solution sol = constructive.construct(instance);
             if(Main.DEBUG)
                 sol.printSol();
