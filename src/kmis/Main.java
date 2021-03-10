@@ -1,12 +1,20 @@
 package kmis;
 
+import kmis.algorithm.AlgConstructive;
+import kmis.constructive.GRASPGRConstructive;
+import kmis.constructive.GRASPRGConstructive;
 import kmis.constructive.IConstructive;
 import kmis.constructive.RandomConstructive;
+import kmis.localSearch.ILocalSearch;
+import kmis.localSearch.LocalSearch;
+import kmis.localSearch.LocalSearchEfficient;
 import kmis.structure.Instance;
 import kmis.structure.RandomManager;
-import kmis.structure.Solution;
+import kmis.structure.Result;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 
 public class Main {
@@ -15,27 +23,66 @@ public class Main {
     static ArrayList<Instance> instances;
 
     final static boolean readAllFolders = false;
-    final static boolean readAllInstances = false;
+    final static boolean readAllInstances = true;
     final static boolean readFromInput = false;
 
-    final static String folderIndex = "paper";
-    final static String instanceIndex = "paperExample.txt";
+    final static String folderIndex = "preliminar";
+    final static String instanceIndex = "classe_6_32_40.txt";
 
     static List<String> foldersNames;
     static List<String> instancesNames;
     static String instanceFolderPath;
 
+    static final int numSolutions=1000;
+
     final public static boolean DEBUG = true;
-    static IConstructive constructive = new RandomConstructive();
+    static IConstructive randomConstructive = new RandomConstructive();
+    static IConstructive graspGRConstructive =new GRASPGRConstructive();
+    static  IConstructive graspRGConstructive =new GRASPRGConstructive();
+
+    static ILocalSearch localSearch=new LocalSearch();
+    static ILocalSearch localSearchEfficient=new LocalSearchEfficient();
+
+    static float [] alphas=new float[]{/*0.25f,*/0.5f/*,0.75f,1f*/}; //alpha=1->random
+    static public float alpha;
+
     final static int seed=13;
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         readData();
-        for (Instance instance:instances) {
-            RandomManager.setSeed(seed);
-            Solution sol = constructive.construct(instance);
-            if(Main.DEBUG)
-                sol.printSol();
+        AlgConstructive algConstructive=new AlgConstructive(numSolutions, graspRGConstructive,localSearchEfficient);
+
+        for (float a : alphas) {
+            alpha=a;
+            List<Result> results = new ArrayList<>();
+            for (Instance instance:instances) {
+                RandomManager.setSeed(seed);
+                Result result=algConstructive.execute(instance);
+                results.add(result);
+            }
+            printResults("./results/"+algConstructive.toString()+".csv", results);
+        }
+
+
+    }
+
+    private static void printResults(String path, List<Result> results) {
+        try (PrintWriter pw = new PrintWriter(path)) {
+            List<String> headers = new ArrayList<>(results.get(0).getKeys());
+            pw.print("Instance");
+            for (String header : headers) {
+                pw.print(","+header);
+            }
+            pw.println();
+            for (Result result : results) {
+                pw.print(result.getInstanceName());
+                for (String header : headers) {
+                    pw.print(","+result.get(header));
+                }
+                pw.println();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -62,7 +109,7 @@ public class Main {
         int numElementsR;
         int numEdges;
         int numElementsSol;
-        BitSet []conexions;
+        BitSet []connections;
         line = sc.nextLine();
         lineContent = line.split(" ");
 
@@ -70,17 +117,17 @@ public class Main {
         numElementsR = Integer.parseInt(lineContent[1]);
         numEdges=Integer.parseInt(lineContent[2]);
         numElementsSol=Integer.parseInt(lineContent[3]);
-        conexions = new BitSet[numEdges];
+        connections = new BitSet[numEdges];
 
-        for (int i=0; i< conexions.length;i++){
-            conexions[i]=new BitSet(numElementsR);
+        for (int i=0; i< connections.length;i++){
+            connections[i]=new BitSet(numElementsR);
             line = sc.nextLine();
             lineContent = line.split(" ");
             elementL = (Integer.parseInt(lineContent[0]))-1;
             elementR = (Integer.parseInt(lineContent[1]))-1;
-            conexions[elementL].set(elementR);
+            connections[elementL].set(elementR);
         }
-        instances.add(new Instance(conexions, numElementsSol, numEdges, numElementsR, numElementsL));
+        instances.add(new Instance(connections, numElementsSol, numEdges, numElementsR, numElementsL));
     }
 
     private static void readAllFolders(){

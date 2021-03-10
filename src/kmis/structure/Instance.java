@@ -6,6 +6,7 @@ import java.util.BitSet;
 public class Instance {
 
     private String path;
+    private String name;
 
     private int numElementsL;
     private int numElementsR;
@@ -15,6 +16,7 @@ public class Instance {
 
     public Instance(String path){
         this.path = path;
+        this.name = path.substring(Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\"))+1).replace(".txt", "");
         readInstance();
     }
 
@@ -65,7 +67,15 @@ public class Instance {
         return numElementsL;
     }
 
+    public int getNumElementsR() {
+        return numElementsR;
+    }
+
     public BitSet[] getConnections() {
         return connections;
+    }
+
+    public String getName() {
+        return name;
     }
 }

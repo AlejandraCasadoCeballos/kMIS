@@ -8,14 +8,13 @@ import java.util.List;
 public class Solution {
 
     private final Instance instance;
-    private final BitSet sol;
-    private final List<Integer> elementsSol;
+    private BitSet sol;
+    private List<Integer> elementsSol;
 
     public Solution(Instance instance){
         this.instance=instance;
         this.elementsSol=new ArrayList<>(instance.getNumElementsSol());
         sol=new BitSet();
-
 
     }
 
@@ -34,7 +33,7 @@ public class Solution {
         }
     }
 
-    private void calculateAllJoins(){
+    public void calculateAllJoins(){
         sol.clear();
         sol.or(instance.getConnections()[elementsSol.get(0)]);
         int size = elementsSol.size();
@@ -52,5 +51,42 @@ public class Solution {
         }
         elementsSol.add(elem);
     }
+
+    public void remove(int elem) {
+        elementsSol.remove(Integer.valueOf(elem));
+    }
+
+    public void removeByPos(int pos) {
+        elementsSol.remove(pos);
+    }
+
+    public Solution clone(){
+        Solution solution=new Solution(instance);
+        solution.sol=this.sol;
+        solution.elementsSol=this.elementsSol;
+        return solution;
+    }
+
+    public List<Integer> getElementsSol() {
+        return elementsSol;
+    }
+
+    public int getObjectiveFunction(){
+        return sol.cardinality();
+    }
+
+    public BitSet getSol() {
+        return sol;
+    }
+
+    public void setSol(BitSet sol) {
+        this.sol = sol;
+    }
+
+    public void copySol(BitSet sol) {
+        this.sol.clear();
+        this.sol.or(sol);
+    }
+
 
 }

@@ -24,4 +24,8 @@ public class RandomConstructive implements IConstructive{
 
         return solution;
     }
+
+    public String toString() {
+        return this.getClass().getSimpleName();
+    }
 }
