@@ -6,12 +6,11 @@ import kmis.structure.Solution;
 
 import java.util.*;
 
-public class LocalSearchEfficient implements ILocalSearch{
+public class LocalSearchEfficientAlternativeOF implements ILocalSearch{
 
     private final boolean firstImprovement=true;
 
     public Solution execute(Solution sol, Instance instance){
-
 
         List<Integer> unSelectedCopy=createUnselectedList(instance,sol);
         List<Integer> selectedCopy = copySelectedPosList(instance);
@@ -22,6 +21,7 @@ public class LocalSearchEfficient implements ILocalSearch{
 
         BitSet testBitSet = new BitSet(instance.getNumElementsR());
         BitSet originalBitSet = new BitSet(instance.getNumElementsR());
+        Map<Integer, Integer> alternativeOF;
         while(improvement){
             improvement = false;
             Collections.shuffle(unSelectedCopy, RandomManager.getRandom());
@@ -35,18 +35,20 @@ public class LocalSearchEfficient implements ILocalSearch{
                 for(int j = 0; j < numUnselected; j++){
                     int unselectedNode = unSelectedCopy.get(j);
                     testBitSet.and(instance.getConnections()[unselectedNode]);
+                    alternativeOF = createAlternativeOF(sol,posSelectedNode,unselectedNode,testBitSet);
+                    //alternativeOF = createAlternativeOFEfficient(sol,instance, selectedNode,unselectedNode);
 
                     int solCard = sol.getSol().cardinality();
                     int testBitCard = testBitSet.cardinality();
 
-                    if(solCard<testBitCard) {
-
+                    if(solCard<testBitCard || (solCard == testBitCard && sol.compare(alternativeOF) > 0) ) {
                         improvement=true;
                         unSelectedCopy.remove(j);
                         unSelectedCopy.add(selectedNode);
                         sol.removeByPos(posSelectedNode);
                         sol.add(unselectedNode);
                         sol.copySol(testBitSet);
+                        sol.createAlternativeOF();
                         break;
                     }
 
@@ -57,11 +59,8 @@ public class LocalSearchEfficient implements ILocalSearch{
                 if(improvement && firstImprovement) {
                     break;
                 }
-
             }
-
         }
-        //sol.calculateAllJoins();
 
         return sol;
     }
@@ -79,6 +78,40 @@ public class LocalSearchEfficient implements ILocalSearch{
                 }
             }
         }
+    }
+
+    public Map<Integer, Integer> createAlternativeOF(Solution sol,int removeNode, int addNode,BitSet testBitset){
+
+        BitSet bitset= (BitSet) testBitset.clone();
+        Solution solAux = sol.clone();
+        solAux.removeByPos(removeNode);
+        solAux.add(addNode);
+        solAux.setSol(bitset);
+
+        return solAux.createAlternativeOF();
+    }
+
+    public Map<Integer, Integer> createAlternativeOFEfficient(Solution sol, Instance instance, int removeNode, int addNode) {
+        int []array=new int[instance.getNumElementsR()];
+
+        for (int selected : sol.getElementsSol()) {
+            if (selected != removeNode) {
+                for (int i = 0; i < instance.getNumElementsR(); i++) {
+                    if (instance.getConnections()[selected].get(i))
+                        array[i]++;
+                }
+            }
+        }
+        for (int i = 0; i < instance.getNumElementsR(); i++) {
+            if (instance.getConnections()[addNode].get(i))
+                array[i]++;
+        }
+        Map<Integer, Integer> alternativeOF = new HashMap<>();
+        for (int value : array) {
+            int count = alternativeOF.getOrDefault(value, 0);
+            alternativeOF.put(value, count+1);
+        }
+        return alternativeOF;
     }
 
     private List<Integer> createUnselectedList(Instance instance, Solution sol){
@@ -109,6 +142,6 @@ public class LocalSearchEfficient implements ILocalSearch{
     @Override
     public String toString() {
         String improvement=firstImprovement? "firstImprovement":"bestImprovement";
-        return " LocalSearchEfficient(" + improvement+ ')';
+        return " LocalSearchEfficientAlternativeOF(" + improvement+ ')';
     }
 }

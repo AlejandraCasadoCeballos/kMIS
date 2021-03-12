@@ -5,9 +5,7 @@ import kmis.constructive.GRASPGRConstructive;
 import kmis.constructive.GRASPRGConstructive;
 import kmis.constructive.IConstructive;
 import kmis.constructive.RandomConstructive;
-import kmis.localSearch.ILocalSearch;
-import kmis.localSearch.LocalSearch;
-import kmis.localSearch.LocalSearchEfficient;
+import kmis.localSearch.*;
 import kmis.structure.Instance;
 import kmis.structure.RandomManager;
 import kmis.structure.Result;
@@ -34,6 +32,7 @@ public class Main {
     static String instanceFolderPath;
 
     static final int numSolutions=1000;
+    static public final boolean de100en100=false;
 
     final public static boolean DEBUG = true;
     static IConstructive randomConstructive = new RandomConstructive();
@@ -42,6 +41,9 @@ public class Main {
 
     static ILocalSearch localSearch=new LocalSearch();
     static ILocalSearch localSearchEfficient=new LocalSearchEfficient();
+    static ILocalSearch tabuSearch=new TabuSearch();
+    static ILocalSearch localSearchEfficientAlternativeOF=new LocalSearchEfficientAlternativeOF();
+
 
     static float [] alphas=new float[]{/*0.25f,*/0.5f/*,0.75f,1f*/}; //alpha=1->random
     static public float alpha;
@@ -50,7 +52,7 @@ public class Main {
 
     public static void main(String[] args) {
         readData();
-        AlgConstructive algConstructive=new AlgConstructive(numSolutions, graspRGConstructive,localSearchEfficient);
+        AlgConstructive algConstructive=new AlgConstructive(numSolutions, graspRGConstructive,tabuSearch);
 
         for (float a : alphas) {
             alpha=a;
@@ -70,14 +72,17 @@ public class Main {
         try (PrintWriter pw = new PrintWriter(path)) {
             List<String> headers = new ArrayList<>(results.get(0).getKeys());
             pw.print("Instance");
+            int nElems = 0;
             for (String header : headers) {
                 pw.print(","+header);
+                nElems++;
             }
             pw.println();
+
             for (Result result : results) {
                 pw.print(result.getInstanceName());
-                for (String header : headers) {
-                    pw.print(","+result.get(header));
+                for (int i = 0; i < nElems; i++) {
+                    pw.print(","+result.get(i));
                 }
                 pw.println();
             }

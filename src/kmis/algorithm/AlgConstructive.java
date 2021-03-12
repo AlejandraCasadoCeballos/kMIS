@@ -1,5 +1,6 @@
 package kmis.algorithm;
 
+import kmis.Main;
 import kmis.constructive.IConstructive;
 import kmis.localSearch.ILocalSearch;
 import kmis.structure.Instance;
@@ -45,9 +46,10 @@ public class AlgConstructive implements Algorithm{
                 bestCardinality=solCardinality;
                 bestSolution=sol;
             }
-            if (i % 100 == 0 && i > 0) {
-                totalTime = System.currentTimeMillis() - totalTime;
-                secs = totalTime / 1000f;
+
+            if (Main.de100en100 && i % 100 == 0 && i > 0) {
+                long currentTime = System.currentTimeMillis() - totalTime;
+                secs = currentTime / 1000f;
                 result.add("OF_"+i,bestSolution.getObjectiveFunction());
                 result.add("time_"+i,secs);
             }
